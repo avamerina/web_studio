@@ -2,3 +2,6 @@ venv
 .idea
 __pycache__/
 db.sqlite3
+.env
+authentication/gs_credentials/web-studio-403108-56749b070f44.json
+
