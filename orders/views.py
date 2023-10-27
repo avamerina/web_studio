@@ -1,4 +1,7 @@
+from django.contrib.auth.models import AnonymousUser
+from django.db.models import Q
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from orders.models import Order, File
@@ -8,9 +11,21 @@ from orders.services import get_order_by_slug
 
 
 class OrderViewSet(viewsets.ModelViewSet):
-    queryset = Order.objects.filter(user__isnull=True)
     serializer_class = OrderSerializer
     lookup_field = 'slug'
+
+    def get_queryset(self):
+        if isinstance(self.request.user, AnonymousUser):
+            queryset = Order.objects.filter(user__isnull=True)
+        else:
+            queryset = Order.objects.filter(Q(user__isnull=True) | Q(user_id=self.request.user))
+        return queryset
+
+    @action(methods=['GET'], detail=False)
+    def my_orders(self, request, *args, **kwargs):
+        queryset = self.get_queryset().filter(user_id=self.request.user)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         data = request.data
@@ -65,3 +80,4 @@ class FileViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
