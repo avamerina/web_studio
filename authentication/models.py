@@ -20,4 +20,5 @@ class CustomUser(AbstractBaseUser):
     objects = CustomUserManager()
 
     def __str__(self):
-        return self.phone
+        return f'{self.phone}'
+
