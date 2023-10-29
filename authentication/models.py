@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 
 from phonenumber_field.modelfields import PhoneNumberField
@@ -6,7 +6,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 from authentication.managers import CustomUserManager
 
 
-class CustomUser(AbstractBaseUser):
+class CustomUser(AbstractBaseUser, PermissionsMixin):
     phone = PhoneNumberField(unique=True)
     birth_date = models.DateField()
     image = models.CharField(max_length=1000)
