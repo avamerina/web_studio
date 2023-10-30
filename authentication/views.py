@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
+
 
 from authentication.serializers import CustomUserSerializer, CustomUserPhotoUpdateSerializer
 from utils.uploaders import Uploader
@@ -16,9 +18,26 @@ class CustomUserViewSet(viewsets.ModelViewSet):
         'photo_update': CustomUserPhotoUpdateSerializer
     }
 
+    @extend_schema(
+        operation_id='upload_file',
+        request={
+            'multipart/form-data': {
+                'type': 'object',
+                'properties': {
+                    'image': {
+                        'type': 'string',
+                        'format': 'binary'
+                    }
+                }
+            }
+        },
+    )
     @action(methods=['PATCH'], detail=True)
     def set_photo(self, request, *args, **kwargs):
-        image = request.FILES['image']
+        try:
+            image = request.FILES['image']
+        except Exception as e:
+            return Response(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         profile = self.get_object()
         public_uri = Uploader.image_upload(image, image.name)
         serializer = CustomUserPhotoUpdateSerializer(profile, data={"image": public_uri})

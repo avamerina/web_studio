@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import Q
+from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -11,6 +12,7 @@ from orders.services import get_order_by_slug
 
 
 class OrderViewSet(viewsets.ModelViewSet):
+    http_method_names = ['get', 'post']
     serializer_class = OrderSerializer
     lookup_field = 'slug'
 
@@ -21,25 +23,50 @@ class OrderViewSet(viewsets.ModelViewSet):
             queryset = Order.objects.filter(Q(user__isnull=True) | Q(user_id=self.request.user))
         return queryset
 
+    @extend_schema(description="Authorization header required")
     @action(methods=['GET'], detail=False)
     def my_orders(self, request, *args, **kwargs):
-        queryset = self.get_queryset().filter(user_id=self.request.user)
-        serializer = self.get_serializer(queryset, many=True)
+        try:
+            queryset = self.get_queryset().filter(user_id=self.request.user)
+            serializer = self.get_serializer(queryset, many=True)
+        except Exception as e:
+            return Response(data={"error": f' {e}'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        data = request.data
+        data = request.data.copy()
         data['user'] = request.user.id
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_201_CREATED)
 
 
 class FileViewSet(viewsets.ModelViewSet):
+    http_method_names = ['get', 'post']
     queryset = File.objects.all()
     serializer_class = FileSerializer
 
+    @extend_schema(
+        operation_id='upload_file',
+        request={
+            'multipart/form-data': {
+                'type': 'object',
+                'properties': {
+                    'order': {
+                        'type': 'string',
+                    },
+                    'url': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'string',
+                            'format': 'binary'
+                        }
+                    }
+                }
+            }
+        },
+    )
     def create(self, request, *args, **kwargs):
         images = request.FILES.getlist('url')
         order_slug = request.data.get('order')
@@ -80,4 +107,3 @@ class FileViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
