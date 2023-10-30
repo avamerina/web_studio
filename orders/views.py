@@ -11,6 +11,7 @@ from orders.services import get_order_by_slug
 
 
 class OrderViewSet(viewsets.ModelViewSet):
+    http_method_names = ['get', 'post']
     serializer_class = OrderSerializer
     lookup_field = 'slug'
 
@@ -28,15 +29,16 @@ class OrderViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        data = request.data
+        data = request.data.copy()
         data['user'] = request.user.id
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_201_CREATED)
 
 
 class FileViewSet(viewsets.ModelViewSet):
+    http_method_names = ['get', 'post']
     queryset = File.objects.all()
     serializer_class = FileSerializer
 
@@ -80,4 +82,3 @@ class FileViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-

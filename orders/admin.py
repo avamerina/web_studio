@@ -9,6 +9,8 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = ["slug", "description", "status", "user"]
     ordering = ["status"]
     actions = ["send_to_process"]
+    search_fields = ['slug', 'description', 'user__phone']
+    list_filter = ['user', 'status']
 
     @admin.action(description="Send selected orders to process")
     def send_to_process(self, request, queryset):

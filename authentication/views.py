@@ -18,7 +18,10 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 
     @action(methods=['PATCH'], detail=True)
     def set_photo(self, request, *args, **kwargs):
-        image = request.FILES['image']
+        try:
+            image = request.FILES['image']
+        except Exception as e:
+            return Response(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         profile = self.get_object()
         public_uri = Uploader.image_upload(image, image.name)
         serializer = CustomUserPhotoUpdateSerializer(profile, data={"image": public_uri})

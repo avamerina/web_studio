@@ -25,6 +25,7 @@ class Order(models.Model):
                 generated_number = generate_order_number()
                 if not Order.objects.filter(slug=generated_number):
                     self.slug = slugify(generated_number)
+                    return super().save(*args, **kwargs)
         return super().save(*args, **kwargs)
 
 
