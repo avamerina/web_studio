@@ -6,7 +6,7 @@ from orders.models import Order, File
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        fields = '__all__'
+        exclude = ['slug']
 
     def create(self, validated_data):
         return super().create(validated_data)

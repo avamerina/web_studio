@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
+
 
 from authentication.serializers import CustomUserSerializer, CustomUserPhotoUpdateSerializer
 from utils.uploaders import Uploader
@@ -16,6 +18,20 @@ class CustomUserViewSet(viewsets.ModelViewSet):
         'photo_update': CustomUserPhotoUpdateSerializer
     }
 
+    @extend_schema(
+        operation_id='upload_file',
+        request={
+            'multipart/form-data': {
+                'type': 'object',
+                'properties': {
+                    'image': {
+                        'type': 'string',
+                        'format': 'binary'
+                    }
+                }
+            }
+        },
+    )
     @action(methods=['PATCH'], detail=True)
     def set_photo(self, request, *args, **kwargs):
         try:
