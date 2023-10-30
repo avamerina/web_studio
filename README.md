@@ -47,15 +47,10 @@ body: {"phone": "your_username", "password": "your_password"}
 
 * login
 ```
-POST /token/login/
+POST /jwt/create
 body: {"phone": "your_username", "password": "your_password"} 
 ```
 
-* logout
-```
-POST /token/logout/
-parameters: {"Authorization" : Token your_token}
-```
 
 * profiles
   
