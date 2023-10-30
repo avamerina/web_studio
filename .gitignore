@@ -5,4 +5,4 @@ db.sqlite3
 .env
 web-studio-403108-56749b070f44.json
 staticfiles
-
+celerybeat-schedule
